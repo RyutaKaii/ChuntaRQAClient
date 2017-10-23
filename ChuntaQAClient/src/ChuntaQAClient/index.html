@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chunta RQAClient</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="./css/bootstrap.min.css" rel="stylesheet">
+        
+        <style type="text/css">
+<!--
+input[type="button"] {
+    margin-left: 60px;
+}
+-->
+        </style> 
+    </head>
+    <body>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="./js/bootstrap.min.js"></script>
+        <script src="./js/requestRqa.js"></script>
+        <script src="./js/jsonUtil.js"></script>
+        <script src="./js/interface.js"></script>
+        
+        <form id="form" accept-charset="UTF-8">
+            <div id="erea_result" class="container">
+                <h1><span class="label label-default">Login</span></h1>
+
+                <div class="input-group">
+                    <span class="input-group-addon">ID</span>
+                    <input type="text" id="input_user" class="form-control" placeholder="your name" />
+                </div>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <span class="input-group-addon">PASS</span>
+                    <input type="text" id="input_pass" class="form-control" placeholder="your password" />
+                </div>
+
+                <p>
+                    <input type="button" id="select" value="LOGIN" class="btn btn-default" onclick="doRequest('selectList', 0);" />
+                </p>
+                
+                <h2><span class="label label-default">ようこそChunta RQAClientへ</span></h2>
+                <p class="well well-lg">ログインするにはIDとPASSWORDを発行する必要があります。<br />
+                    お手数ですが下記まで連絡願います。<br />
+                    kaiiryuta@gmail.com
+                </p>
+                
+                Created by <a href="http://chunta.html.xdomain.jp/index.html">ChuntaWeb</a>
+            </div>
+        </form>
+        
+    </body>
+</html>
