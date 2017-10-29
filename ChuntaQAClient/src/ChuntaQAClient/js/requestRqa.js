@@ -14,7 +14,7 @@ function requestServer(url, jsonStr, resultTyoe) {
 
     $.ajax({
         type:"post",
-        url:"http://chuntaweb.dip.jp:8080/ChuntaRQAServer/" + url,
+        url:"http://18.220.246.76:8080/ChuntaRQAServer/" + url,
         data:jsonStr,
         contentType: 'application/JSON',
         dataType: "json",
