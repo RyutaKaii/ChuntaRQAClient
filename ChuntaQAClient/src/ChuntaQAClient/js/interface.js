@@ -1,8 +1,38 @@
+/**************************************/
+/** 定数 */
+/**************************************/
+/** 表示タイプ_一覧表示 */
+var TYPE_RESULT_LIST = 0;
+/** 表示タイプ_フォーム */
+var TYPE_FORM = 1;
+/** 表示タイプ_完了 */
+var TYPE_FINISH = 2;
+/** ページネーション間隔 */
+var PAGE_INTERVAL = 30;
+/** ページネーション回数 */
+var PAGE_NUM = 5;
+
+/** URL_サーバ */
+//var URL_SERVER = "http://18.220.246.76:8080/ChuntaRQAServer/";
+var URL_SERVER = "http://localhost:8080/ChuntaRQAServer/";
+
+
+/**************************************/
+/** グローバル変数 */
+/**************************************/
 /** ユーザー名 */
 var user;
 /** パスワード */
 var pass;
+/** 表示中ページ(ページネーション用) */
+var page;
 
+
+/**
+ * ログアウト処理.<br>
+ * ユーザー名、パスワードおよび画面を初期化する.
+ * @returns {undefined}
+ */
 function doLogout() {
     user = "";
     pass = "";
@@ -14,7 +44,7 @@ function doLogout() {
  * 画面からリクエストパラメータを取得してリクエストを送信、結果を表示する.<br>
  * 取得できないパラメータは空文字を設定する.
  * @param {type} url
- * @param {type} resultTyoe
+ * @param {type} resultTyoe 0:リスト表示, 1:入力フォーム, 2:処理完了
  * @returns {undefined}
  */
 function doRequest(url, resultTyoe) {
@@ -23,6 +53,24 @@ function doRequest(url, resultTyoe) {
     var jsonStr = createJsonStrFromObject(jsonObject);
     
     requestServer(url, jsonStr, resultTyoe);
+}
+
+/**
+ * 確認ダイアログを表示し、キャンセル時は処理をキャンセルする。
+ * OK時は画面からリクエストパラメータを取得してリクエストを送信、結果を表示する.<br>
+ * 取得できないパラメータは空文字を設定する.
+ * @param {type} url
+ * @param {type} resultTyoe
+ * @returns {undefined}
+ */
+function doConfirmRequest(url, resultTyoe) {
+    if (window.confirm('削除します。よろしいですか？')) {
+        var paramArray = getRequestParameterAll();
+        var jsonObject = createJsonObject(paramArray);
+        var jsonStr = createJsonStrFromObject(jsonObject);
+
+        requestServer(url, jsonStr, resultTyoe);
+    }
 }
 
 /**
@@ -110,7 +158,7 @@ function viewResult(resultObject, resultTyoe) {
  */
 function viewHeadder(txt) {
     txt = txt + "<input type=\"button\" id=\"logout\" value=\"ログアウト\" class=\"btn btn-default\" onclick=\"doLogout();\" />";
-    txt = txt + "<input type=\"button\" id=\"select\" value=\"一覧表示\" class=\"btn btn-default\" onclick=\"doRequest(\'selectList\', 0);\" />";
+    txt = txt + "<input type=\"button\" id=\"select\" value=\"一覧表示\" class=\"btn btn-default\" onclick=\"setPage(" + String(-1) + ");doRequest(\'selectList\', TYPE_RESULT_LIST);\" />";
     
     return txt;
 }
@@ -135,6 +183,15 @@ function getAuthInfo(userTableList) {
  */
 function viewList(txt, qaTableList) {
     txt = txt + "<input type=\"submit\" value=\"新規登録\" class=\"btn btn-default\" onclick=\"viewInsertForm();\" />";
+    
+    txt = txt + "<div class=\"input-group\">";
+    txt = txt + "<input type=\"text\" id=\"input_question\" class=\"form-control\" placeholder=\"検索する文字\">";
+    txt = txt + "<span class=\"input-group-btn\">";
+    txt = txt + "<button type=\"button\" class=\"btn btn-default\" onclick=\"doRequest(\'selectSearch\', TYPE_RESULT_LIST);\">検索</button>";
+    txt = txt + "</span>";
+    txt = txt + "</div>";
+    
+    txt = viewPageNation(txt);
 
     for (key in qaTableList) {
         txt = txt + "<p><span class=\"label label-default\">No.";
@@ -159,8 +216,8 @@ function viewList(txt, qaTableList) {
         txt = txt + qaTableList[key].lastupdate;
         txt = txt + "</p>";
         txt = txt + "<p>";
-        txt = txt + "<input type=\"button\" value=\"更新\" class=\"btn btn-default\" onclick=\"doRequest(\'selectQaOne?no=" + qaTableList[key].no + "\', 1);\" />";
-        txt = txt + "<input type=\"button\" value=\"削除\" class=\"btn btn-default\" onclick=\"doRequest(\'deleteQa?no=" + qaTableList[key].no + "\', 2);\" />";
+        txt = txt + "<input type=\"button\" value=\"更新\" class=\"btn btn-default\" onclick=\"doRequest(\'selectQaOne?no=" + qaTableList[key].no + "\', TYPE_FORM);\" />";
+        txt = txt + "<input type=\"button\" value=\"削除\" class=\"btn btn-default\" onclick=\"doConfirmRequest(\'deleteQa?no=" + qaTableList[key].no + "\', TYPE_FINISH);\" />";
         txt = txt + "</p>";
         txt = txt + "<hr />";
     }
@@ -186,7 +243,7 @@ function viewUpdateForm(txt, qaTableList) {
         txt = txt + "<textarea rows=\"5\" id=\"input_question\" class=\"form-control\">" + qaTableList[key].question + "</textarea><br />";
         txt = txt + "<p><span class=\"label label-default\">答え</span></p>";
         txt = txt + "<textarea rows=\"5\" id=\"input_answer\" class=\"form-control\">" + qaTableList[key].answer + "</textarea><br />";
-        txt = txt + "<input type=\"button\" value=\"更新\" class=\"btn btn-default\" onclick=\"doRequest(\'updateQa\', 2);\" /><br />";
+        txt = txt + "<input type=\"button\" value=\"更新\" class=\"btn btn-default\" onclick=\"doRequest(\'updateQa\', TYPE_FINISH);\" /><br />";
         
         txt = txt + "<input type=\"hidden\" id=\"input_no\" value=\"" + qaTableList[key].no + "\" />";
     }
@@ -240,7 +297,7 @@ function viewInsertForm() {
     txt = txt + "<textarea rows=\"5\" id=\"input_question\" class=\"form-control\"></textarea><br />";
     txt = txt + "<p><span class=\"label label-default\">答え</span></p>";
     txt = txt + "<textarea rows=\"5\" id=\"input_answer\" class=\"form-control\"></textarea><br />";
-    txt = txt + "<input type=\"button\" value=\"登録\" class=\"btn btn-default\" onclick=\"doRequest(\'insertQa\', 2);\" /><br />";
+    txt = txt + "<input type=\"button\" value=\"登録\" class=\"btn btn-default\" onclick=\"doRequest(\'insertQa\', TYPE_FINISH);\" /><br />";
     
     txt = viewHidden(txt);
         
@@ -290,7 +347,6 @@ function isExistError(errorTableList) {
  * @returns {undefined}
  */
 function viewTranseError() {
-    // 出力する変数
     var txt = "";
     
     txt = txt + "<h1><span class=\"label label-default\">エラー情報</span></h1>";
@@ -300,4 +356,48 @@ function viewTranseError() {
     
     // 出力エリアに設定
     document.getElementById("erea_result").innerHTML = txt;
+}
+
+/**
+ * ページネーションを表示する.
+ * @param {type} txt
+ * @returns {String}
+ */
+function viewPageNation(txt) {
+    txt = txt + "<nav>";
+    txt = txt + "<ul class=\"pagination\">";
+
+    for (var row = 0; row < PAGE_NUM; row++) {
+        var from = 0 + PAGE_INTERVAL * row;
+        var to = from + PAGE_INTERVAL;
+        var viewFrom = String(from);
+        var viewTo = String(to);
+        var viewPage = viewFrom + "-" + viewTo;
+        
+        if (page === row) {
+            txt = txt + "<li class=\"active\"><a href=\"javascript:void(0);\" onclick=\"setPage(" + from + ");doRequest(\'selectBetween?from=" + viewFrom + "&to=" + viewTo + "\', TYPE_RESULT_LIST);\">" + viewPage + "</a></li>";
+        } else {
+            txt = txt + "<li><a href=\"javascript:void(0);\" onclick=\"setPage(" + from + ");doRequest(\'selectBetween?from=" + viewFrom + "&to=" + viewTo + "\', TYPE_RESULT_LIST);\">" + viewPage + "</a></li>";
+        }
+    }
+    
+    if (page === -1) {
+        txt = txt + "<li class=\"active\"><a href=\"javascript:void(0);\" onclick=\"setPage(" + String(-1) + ");doRequest(\'selectList\', TYPE_RESULT_LIST);\">ALL</a></li>";
+    } else {
+        txt = txt + "<li><a href=\"javascript:void(0);\" onclick=\"setPage(" + String(-1) + ");doRequest(\'selectList\', TYPE_RESULT_LIST);\">ALL</a></li>";
+    }
+    
+    txt = txt + "</ul>";
+    txt = txt + "</nav>";
+    
+    return txt;
+}
+
+/**
+ * ページネーション用のページを設定する.
+ * @param {type} selectedPage
+ * @returns {undefined}
+ */
+function setPage(selectedPage) {
+    page = selectedPage;
 }
