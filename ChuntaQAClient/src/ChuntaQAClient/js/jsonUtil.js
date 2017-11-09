@@ -41,10 +41,10 @@ function getJsonObjectFromObject(userTableList, qaTableList, errorTableList) {
  * @param {type} user
  * @param {type} pass
  * @param {type} mail
- * @param {type} response
+ * @param {type} category
  * @returns {undefined}
  */
-function createUserTableListObject(user, pass, mail, response) {
+function createUserTableListObject(user, pass, mail, category) {
     var userTableList = {};
     
     userTableList = [
@@ -52,7 +52,7 @@ function createUserTableListObject(user, pass, mail, response) {
             "user": user,
             "pass": pass,
             "mail": mail,
-            "response": response
+            "category": category
         }
     ];
     
@@ -117,7 +117,7 @@ function createJsonObject(paramArray) {
             paramArray["input_user"],
             paramArray["input_pass"],
             paramArray["input_mail"],
-            paramArray["input_response"]);
+            paramArray["input_category"]);
             
     var qaTableList = createQaTableListObject(
             paramArray["input_no"],
